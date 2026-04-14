@@ -1,0 +1,1057 @@
+{
+  "name": "Análisis Deportivo v23 - Premium (Fútbol + NBA + MLB + NHL + NFL) - Fix Probabilidad",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            }
+          ]
+        }
+      },
+      "id": "3521286f-4fd1-44c4-81ba-273f31b51a6a",
+      "name": "Ejecutar Diariamente (2:00 AM UK)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -880,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Nodo NoOp - Solo para organización visual\nreturn $input.all();"
+      },
+      "id": "0ab584f0-07b8-48e6-a10a-0fdf2583ca92",
+      "name": "→ Futbol",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -304,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Nodo NoOp - Solo para organización visual\nreturn $input.all();"
+      },
+      "id": "c4cc8c51-d545-4086-9903-57a5057619ff",
+      "name": "→ Baloncesto",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -304,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Nodo NoOp - Solo para organización visual\nreturn $input.all();"
+      },
+      "id": "3bc43778-b9f1-4e9b-9745-298aae8921a5",
+      "name": "→ MLB",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -304,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Nodo NoOp - Solo para organización visual\nreturn $input.all();"
+      },
+      "id": "15744724-755b-478e-aad2-17ffab11b05a",
+      "name": "→ NHL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -304,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Nodo NoOp - Solo para organización visual\nreturn $input.all();"
+      },
+      "id": "44806c96-55f6-4293-8109-f140fb23fc87",
+      "name": "→ NFL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -304,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ 'https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=' + new Date().toISOString().slice(0,10).replace(/-/g,'') }}",
+        "options": {}
+      },
+      "id": "7eb61664-7924-4855-aa27-d0c0bd5daecd",
+      "name": "HTTP Request ESPN (Fútbol)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -80,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=' + new Date().toISOString().slice(0,10).replace(/-/g,'') }}",
+        "options": {}
+      },
+      "id": "8553159c-98f2-420d-b529-22dcd6a44a4a",
+      "name": "HTTP Request ESPN (NBA)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -80,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ 'https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=' + new Date().toISOString().slice(0,10).replace(/-/g,'') }}",
+        "options": {}
+      },
+      "id": "bcfb3f37-86ec-4d64-8175-5e9b5f6a0b69",
+      "name": "HTTP Request ESPN (MLB)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -80,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ 'https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/scoreboard?dates=' + new Date().toISOString().slice(0,10).replace(/-/g,'') }}",
+        "options": {}
+      },
+      "id": "86a0c51f-ddcd-4bc5-beec-a77b0ec34db5",
+      "name": "HTTP Request ESPN (NHL)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -80,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=' + new Date().toISOString().slice(0,10).replace(/-/g,'') }}",
+        "options": {}
+      },
+      "id": "2a20c7e4-ed96-40d2-93ca-0c5759aa2c7d",
+      "name": "HTTP Request ESPN (NFL)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -80,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.all()[0].json;\nlet outputText = '';\nlet noGames = false;\n\nif (data.events && Array.isArray(data.events)) {\n  const events = data.events;\n  if (events.length === 0) {\n    noGames = true;\n    outputText = '⚠️ NO HAY PARTIDOS PROGRAMADOS PARA HOY';\n  } else {\n    outputText = `PARTIDOS DE FÚTBOL DEL DÍA (${new Date().toLocaleDateString('es-ES')})\\n`;\n    outputText += '='.repeat(50) + '\\n';\n    \n    events.forEach((event, index) => {\n      const competition = event.competitions?.[0];\n      if (competition) {\n        const homeTeam = competition.competitors?.find(c => c.homeAway === 'home')?.team?.displayName || 'Desconocido';\n        const awayTeam = competition.competitors?.find(c => c.homeAway === 'away')?.team?.displayName || 'Desconocido';\n        const homeRecord = competition.competitors?.find(c => c.homeAway === 'home')?.records?.[0]?.summary || 'N/D';\n        const awayRecord = competition.competitors?.find(c => c.homeAway === 'away')?.records?.[0]?.summary || 'N/D';\n        const status = competition.status?.type?.name || 'Programado';\n        const startDate = competition.startDate ? new Date(competition.startDate).toLocaleString('es-ES') : 'Hora no disponible';\n        \n        outputText += `${index + 1}. ${awayTeam} (${awayRecord}) @ ${homeTeam} (${homeRecord})\\n`;\n        outputText += `   Estado: ${status}\\n`;\n        outputText += `   Fecha/Hora: ${startDate}\\n`;\n        outputText += '-'.repeat(30) + '\\n';\n      }\n    });\n  }\n} else {\n  noGames = true;\n  outputText = '⚠️ NO HAY PARTIDOS PROGRAMADOS PARA HOY';\n}\n\nreturn [{ json: { texto_partidos: outputText, no_games: noGames } }];"
+      },
+      "id": "61dd09f5-329c-44d0-b184-ac7bd2d97457",
+      "name": "Procesar JSON ESPN (Fútbol)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        128,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.all()[0].json;\nlet outputText = '';\nlet noGames = false;\n\nif (data.events && Array.isArray(data.events)) {\n  const events = data.events;\n  if (events.length === 0) {\n    noGames = true;\n    outputText = '⚠️ NO HAY PARTIDOS PROGRAMADOS PARA HOY';\n  } else {\n    outputText = `PARTIDOS NBA DEL DÍA (${new Date().toLocaleDateString('es-ES')})\\n`;\n    outputText += '='.repeat(50) + '\\n';\n    \n    events.forEach((event, index) => {\n      const competition = event.competitions?.[0];\n      if (competition) {\n        const homeTeam = competition.competitors?.find(c => c.homeAway === 'home')?.team?.displayName || 'Desconocido';\n        const awayTeam = competition.competitors?.find(c => c.homeAway === 'away')?.team?.displayName || 'Desconocido';\n        const homeRecord = competition.competitors?.find(c => c.homeAway === 'home')?.records?.[0]?.summary || 'N/D';\n        const awayRecord = competition.competitors?.find(c => c.homeAway === 'away')?.records?.[0]?.summary || 'N/D';\n        const status = competition.status?.type?.name || 'Programado';\n        const startDate = competition.startDate ? new Date(competition.startDate).toLocaleString('es-ES') : 'Hora no disponible';\n        \n        outputText += `${index + 1}. ${awayTeam} (${awayRecord}) @ ${homeTeam} (${homeRecord})\\n`;\n        outputText += `   Estado: ${status}\\n`;\n        outputText += `   Fecha/Hora: ${startDate}\\n`;\n        outputText += '-'.repeat(30) + '\\n';\n      }\n    });\n  }\n} else {\n  noGames = true;\n  outputText = '⚠️ NO HAY PARTIDOS PROGRAMADOS PARA HOY';\n}\n\nreturn [{ json: { texto_partidos: outputText, no_games: noGames } }];"
+      },
+      "id": "5bff4161-9c4d-4677-a245-4fa55bd84fc9",
+      "name": "Procesar JSON ESPN (NBA)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        128,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.all()[0].json;\nlet outputText = '';\nlet noGames = false;\n\nif (data.events && Array.isArray(data.events)) {\n  const events = data.events;\n  if (events.length === 0) {\n    noGames = true;\n    outputText = '⚠️ NO HAY PARTIDOS PROGRAMADOS PARA HOY';\n  } else {\n    outputText = `PARTIDOS MLB DEL DÍA (${new Date().toLocaleDateString('es-ES')})\\n`;\n    outputText += '='.repeat(50) + '\\n';\n    \n    events.forEach((event, index) => {\n      const competition = event.competitions?.[0];\n      if (competition) {\n        const homeTeam = competition.competitors?.find(c => c.homeAway === 'home')?.team?.displayName || 'Desconocido';\n        const awayTeam = competition.competitors?.find(c => c.homeAway === 'away')?.team?.displayName || 'Desconocido';\n        const homeRecord = competition.competitors?.find(c => c.homeAway === 'home')?.records?.[0]?.summary || 'N/D';\n        const awayRecord = competition.competitors?.find(c => c.homeAway === 'away')?.records?.[0]?.summary || 'N/D';\n        const status = competition.status?.type?.name || 'Programado';\n        const startDate = competition.startDate ? new Date(competition.startDate).toLocaleString('es-ES') : 'Hora no disponible';\n        \n        outputText += `${index + 1}. ${awayTeam} (${awayRecord}) @ ${homeTeam} (${homeRecord})\\n`;\n        outputText += `   Estado: ${status}\\n`;\n        outputText += `   Fecha/Hora: ${startDate}\\n`;\n        outputText += '-'.repeat(30) + '\\n';\n      }\n    });\n  }\n} else {\n  noGames = true;\n  outputText = '⚠️ NO HAY PARTIDOS PROGRAMADOS PARA HOY';\n}\n\nreturn [{ json: { texto_partidos: outputText, no_games: noGames } }];"
+      },
+      "id": "b06912c4-bb00-4f81-aa9c-45a41ca02fa4",
+      "name": "Procesar JSON ESPN (MLB)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        128,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.all()[0].json;\nlet outputText = '';\nlet noGames = false;\n\nif (data.events && Array.isArray(data.events)) {\n  const events = data.events;\n  if (events.length === 0) {\n    noGames = true;\n    outputText = '⚠️ NO HAY PARTIDOS PROGRAMADOS PARA HOY';\n  } else {\n    outputText = `PARTIDOS NHL DEL DÍA (${new Date().toLocaleDateString('es-ES')})\\n`;\n    outputText += '='.repeat(50) + '\\n';\n    \n    events.forEach((event, index) => {\n      const competition = event.competitions?.[0];\n      if (competition) {\n        const homeTeam = competition.competitors?.find(c => c.homeAway === 'home')?.team?.displayName || 'Desconocido';\n        const awayTeam = competition.competitors?.find(c => c.homeAway === 'away')?.team?.displayName || 'Desconocido';\n        const homeRecord = competition.competitors?.find(c => c.homeAway === 'home')?.records?.[0]?.summary || 'N/D';\n        const awayRecord = competition.competitors?.find(c => c.homeAway === 'away')?.records?.[0]?.summary || 'N/D';\n        const status = competition.status?.type?.name || 'Programado';\n        const startDate = competition.startDate ? new Date(competition.startDate).toLocaleString('es-ES') : 'Hora no disponible';\n        \n        outputText += `${index + 1}. ${awayTeam} (${awayRecord}) @ ${homeTeam} (${homeRecord})\\n`;\n        outputText += `   Estado: ${status}\\n`;\n        outputText += `   Fecha/Hora: ${startDate}\\n`;\n        outputText += '-'.repeat(30) + '\\n';\n      }\n    });\n  }\n} else {\n  noGames = true;\n  outputText = '⚠️ NO HAY PARTIDOS PROGRAMADOS PARA HOY';\n}\n\nreturn [{ json: { texto_partidos: outputText, no_games: noGames } }];"
+      },
+      "id": "2da61cc5-2e71-4ae0-b663-f95dd5b019c1",
+      "name": "Procesar JSON ESPN (NHL)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        128,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.all()[0].json;\nlet outputText = '';\nlet noGames = false;\n\nif (data.events && Array.isArray(data.events)) {\n  const events = data.events;\n  if (events.length === 0) {\n    noGames = true;\n    outputText = '⚠️ NO HAY PARTIDOS PROGRAMADOS PARA HOY';\n  } else {\n    outputText = `PARTIDOS NFL DEL DÍA (${new Date().toLocaleDateString('es-ES')})\\n`;\n    outputText += '='.repeat(50) + '\\n';\n    \n    events.forEach((event, index) => {\n      const competition = event.competitions?.[0];\n      if (competition) {\n        const homeTeam = competition.competitors?.find(c => c.homeAway === 'home')?.team?.displayName || 'Desconocido';\n        const awayTeam = competition.competitors?.find(c => c.homeAway === 'away')?.team?.displayName || 'Desconocido';\n        const homeRecord = competition.competitors?.find(c => c.homeAway === 'home')?.records?.[0]?.summary || 'N/D';\n        const awayRecord = competition.competitors?.find(c => c.homeAway === 'away')?.records?.[0]?.summary || 'N/D';\n        const status = competition.status?.type?.name || 'Programado';\n        const startDate = competition.startDate ? new Date(competition.startDate).toLocaleString('es-ES') : 'Hora no disponible';\n        \n        outputText += `${index + 1}. ${awayTeam} (${awayRecord}) @ ${homeTeam} (${homeRecord})\\n`;\n        outputText += `   Estado: ${status}\\n`;\n        outputText += `   Fecha/Hora: ${startDate}\\n`;\n        outputText += '-'.repeat(30) + '\\n';\n      }\n    });\n  }\n} else {\n  noGames = true;\n  outputText = '⚠️ NO HAY PARTIDOS PROGRAMADOS PARA HOY';\n}\n\nreturn [{ json: { texto_partidos: outputText, no_games: noGames } }];"
+      },
+      "id": "55db434a-41d3-4662-bfb4-086b31d6d1a9",
+      "name": "Procesar JSON ESPN (NFL)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        128,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer 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"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "llama-3.3-70b-versatile"
+            },
+            {
+              "name": "messages",
+              "value": "={{ [\n  {\n    \"role\": \"system\", \n    \"content\": \"Eres un Analista Deportivo Senior y Experto en Probabilidades. Tu tarea es generar un reporte de apuestas de alto valor.\\n\\nINSTRUCCIONES:\\n1. Analiza los datos de los partidos proporcionados.\\n2. Selecciona los 15 MEJORES PARTIDOS para analizar.\\n3. Utiliza los datos de la API de ESPN proporcionados, que incluyen la forma real de la temporada 2026 (récord de victorias-derrotas).\\n4. Genera una salida estricta en formato ARRAY JSON.\\n\\nCAMPOS DEL JSON (para cada objeto):\\n- 'Evento': (Equipo A vs Equipo B)\\n- 'Liga_Categoria': (Ej: Premier League, La Liga, etc.)\\n- 'Analisis_Forma': (Resumen breve de cómo llegan basado en su récord actual)\\n- 'Prediccion_Marcador': (Ej: 2-1)\\n- 'Mercado_Goles': (Ej: Alta +2.5 / Baja -2.5)\\n- 'Probabilidad_Victoria': (Porcentaje %)\\n- 'Riesgo': (Bajo/Medio/Alto)\\n- 'Justificacion_Clave': (Por qué este pronóstico)\\n\\nREGLA: Responde SOLO con el JSON válido. Sin explicaciones previas ni markdown.\"\n  },\n  {\n    \"role\": \"user\", \n    \"content\": \"DATOS DE LA JORNADA (INCLUYE RÉCORDS ACTUALES): \" + JSON.stringify($json).substring(0, 18000)\n  }\n] }}"
+            },
+            {
+              "name": "temperature",
+              "value": 0.3
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f2a81583-ad89-4d92-b90d-def3098b78fc",
+      "name": "IA Analista Premium (Fútbol)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        352,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer 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"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "llama-3.3-70b-versatile"
+            },
+            {
+              "name": "messages",
+              "value": "={{ [\n  {\n    \"role\": \"system\", \n    \"content\": \"Eres un Analista Deportivo Senior y Experto en Probabilidades. Tu tarea es generar un reporte de apuestas de alto valor.\\n\\nINSTRUCCIONES:\\n1. Analiza los datos de los partidos proporcionados.\\n2. Selecciona los 15 MEJORES PARTIDOS para analizar.\\n3. Utiliza los datos de la API de ESPN proporcionados, que incluyen la forma real de la temporada 2026 (récord de victorias-derrotas).\\n4. Genera una salida estricta en formato ARRAY JSON.\\n\\nCAMPOS DEL JSON (para cada objeto):\\n- 'Evento': (Equipo A vs Equipo B)\\n- 'Liga_Categoria': (Ej: NBA, Euroliga, etc.)\\n- 'Analisis_Forma': (Resumen breve de cómo llegan basado en su récord actual)\\n- 'Prediccion_Marcador': (Ej: 112-108)\\n- 'Mercado_Puntos': (Ej: Alta +225.5 / Baja -225.5)\\n- 'Probabilidad_Victoria': (Porcentaje %)\\n- 'Riesgo': (Bajo/Medio/Alto)\\n- 'Justificacion_Clave': (Por qué este pronóstico)\\n\\nREGLA: Responde SOLO con el JSON válido. Sin explicaciones previas ni markdown.\"\n  },\n  {\n    \"role\": \"user\", \n    \"content\": \"DATOS DE LA JORNADA (INCLUYE RÉCORDS ACTUALES): \" + JSON.stringify($json).substring(0, 18000)\n  }\n] }}"
+            },
+            {
+              "name": "temperature",
+              "value": 0.3
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a4c3a71c-210c-42eb-90cf-4c65b8c72228",
+      "name": "IA Analista Premium (NBA)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        352,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer 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"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "llama-3.3-70b-versatile"
+            },
+            {
+              "name": "messages",
+              "value": "={{ [\n  {\n    \"role\": \"system\", \n    \"content\": \"Eres un Analista Deportivo Senior y Experto en Probabilidades. Tu tarea es generar un reporte de apuestas de alto valor.\\n\\nINSTRUCCIONES:\\n1. Analiza los datos de los partidos proporcionados.\\n2. Selecciona los 15 MEJORES PARTIDOS para analizar.\\n3. Utiliza los datos de la API de ESPN proporcionados, que incluyen la forma real de la temporada 2026 (récord de victorias-derrotas).\\n4. Genera una salida estricta en formato ARRAY JSON.\\n\\nCAMPOS DEL JSON (para cada objeto):\\n- 'Evento': (Equipo A vs Equipo B)\\n- 'Liga_Categoria': (Ej: MLB - Liga Americana, MLB - Liga Nacional, etc.)\\n- 'Analisis_Forma': (Resumen breve de cómo llegan basado en su récord actual)\\n- 'Prediccion_Marcador': (Ej: 6-4)\\n- 'Mercado_Carreras': (Ej: Alta +8.5 / Baja -8.5)\\n- 'Probabilidad_Victoria': (Porcentaje %)\\n- 'Riesgo': (Bajo/Medio/Alto)\\n- 'Justificacion_Clave': (Por qué este pronóstico)\\n\\nREGLA: Responde SOLO con el JSON válido. Sin explicaciones previas ni markdown.\"\n  },\n  {\n    \"role\": \"user\", \n    \"content\": \"DATOS DE LA JORNADA (INCLUYE RÉCORDS ACTUALES): \" + JSON.stringify($json).substring(0, 18000)\n  }\n] }}"
+            },
+            {
+              "name": "temperature",
+              "value": 0.3
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8b029dc3-2967-451b-8ee4-3c4959618900",
+      "name": "IA Analista Premium (MLB)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        352,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer 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"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "llama-3.3-70b-versatile"
+            },
+            {
+              "name": "messages",
+              "value": "={{ [\n  {\n    \"role\": \"system\", \n    \"content\": \"Eres un Analista Deportivo Senior y Experto en Probabilidades. Tu tarea es generar un reporte de apuestas de alto valor.\\n\\nINSTRUCCIONES:\\n1. Analiza los datos de los partidos proporcionados.\\n2. Selecciona los 15 MEJORES PARTIDOS para analizar.\\n3. Utiliza los datos de la API de ESPN proporcionados, que incluyen la forma real de la temporada 2026 (récord de victorias-derrotas).\\n4. Genera una salida estricta en formato ARRAY JSON.\\n\\nCAMPOS DEL JSON (para cada objeto):\\n- 'Evento': (Equipo A vs Equipo B)\\n- 'Liga_Categoria': (Ej: NHL)\\n- 'Analisis_Forma': (Resumen breve de cómo llegan basado en su récord actual)\\n- 'Prediccion_Marcador': (Ej: 4-3)\\n- 'Mercado_Goles': (Ej: Alta +5.5 / Baja -5.5)\\n- 'Probabilidad_Victoria': (Porcentaje %)\\n- 'Riesgo': (Bajo/Medio/Alto)\\n- 'Justificacion_Clave': (Por qué este pronóstico)\\n\\nREGLA: Responde SOLO con el JSON válido. Sin explicaciones previas ni markdown.\"\n  },\n  {\n    \"role\": \"user\", \n    \"content\": \"DATOS DE LA JORNADA (INCLUYE RÉCORDS ACTUALES): \" + JSON.stringify($json).substring(0, 18000)\n  }\n] }}"
+            },
+            {
+              "name": "temperature",
+              "value": 0.3
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8b9a07a0-6e75-4b0d-919c-23f6ff446956",
+      "name": "IA Analista Premium (NHL)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        352,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer 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"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "llama-3.3-70b-versatile"
+            },
+            {
+              "name": "messages",
+              "value": "={{ [\n  {\n    \"role\": \"system\", \n    \"content\": \"Eres un Analista Deportivo Senior y Experto en Probabilidades. Tu tarea es generar un reporte de apuestas de alto valor.\\n\\nINSTRUCCIONES:\\n1. Analiza los datos de los partidos proporcionados.\\n2. Selecciona los 15 MEJORES PARTIDOS para analizar.\\n3. Utiliza los datos de la API de ESPN proporcionados, que incluyen la forma real de la temporada 2026 (récord de victorias-derrotas).\\n4. Genera una salida estricta en formato ARRAY JSON.\\n\\nCAMPOS DEL JSON (para cada objeto):\\n- 'Evento': (Equipo A vs Equipo B)\\n- 'Liga_Categoria': (Ej: NFL)\\n- 'Analisis_Forma': (Resumen breve de cómo llegan basado en su récord actual)\\n- 'Prediccion_Marcador': (Ej: 27-24)\\n- 'Mercado_Puntos': (Ej: Alta +45.5 / Baja -45.5)\\n- 'Probabilidad_Victoria': (Porcentaje %)\\n- 'Riesgo': (Bajo/Medio/Alto)\\n- 'Justificacion_Clave': (Por qué este pronóstico)\\n\\nREGLA: Responde SOLO con el JSON válido. Sin explicaciones previas ni markdown.\"\n  },\n  {\n    \"role\": \"user\", \n    \"content\": \"DATOS DE LA JORNADA (INCLUYE RÉCORDS ACTUALES): \" + JSON.stringify($json).substring(0, 18000)\n  }\n] }}"
+            },
+            {
+              "name": "temperature",
+              "value": 0.3
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2b3d3956-1241-4988-8e38-afc4d7bd427d",
+      "name": "IA Analista Premium (NFL)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        352,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.all()[0].json;\nconst fechaReporte = new Date().toISOString().slice(0,10);\n\ntry {\n  let content = response.choices[0].message.content;\n  // Limpieza agresiva de Markdown y texto basura\n  content = content.replace(/```json/g, '').replace(/```/g, '').trim();\n  \n  // Buscar el inicio y fin del array JSON por si la IA agregó texto extra\n  const firstBracket = content.indexOf('[');\n  const lastBracket = content.lastIndexOf(']');\n  \n  if (firstBracket !== -1 && lastBracket !== -1) {\n      content = content.substring(firstBracket, lastBracket + 1);\n  }\n\n  const parsed = JSON.parse(content);\n  // Añadir Fecha_Reporte a cada objeto\n  return parsed.map(item => ({ json: { ...item, Fecha_Reporte: fechaReporte } }));\n} catch (e) {\n  // Si hay error, devolver un reporte con el mensaje de error\n  const raw = response.choices?.[0]?.message?.content || '';\n  const noHayPartidos = raw.includes('NO HAY PARTIDOS') || raw.includes('no hay partidos');\n  return [{ json: { \n    Evento: noHayPartidos ? '⚠️ NO HAY PARTIDOS PROGRAMADOS PARA HOY' : 'Error en el análisis',\n    Liga_Categoria: '-',\n    Analisis_Forma: '-',\n    Prediccion_Marcador: '-',\n    Mercado_Goles: '-',\n    Probabilidad_Victoria: '-',\n    Riesgo: '-',\n    Justificacion_Clave: '-',\n    Fecha_Reporte: fechaReporte\n  }}];\n}"
+      },
+      "id": "3fc745bc-18df-4302-b24c-5b4925185163",
+      "name": "Limpiador JSON Avanzado (Fútbol)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        576,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.all()[0].json;\nconst fechaReporte = new Date().toISOString().slice(0,10);\n\ntry {\n  let content = response.choices[0].message.content;\n  // Limpieza agresiva de Markdown y texto basura\n  content = content.replace(/```json/g, '').replace(/```/g, '').trim();\n  \n  // Buscar el inicio y fin del array JSON por si la IA agregó texto extra\n  const firstBracket = content.indexOf('[');\n  const lastBracket = content.lastIndexOf(']');\n  \n  if (firstBracket !== -1 && lastBracket !== -1) {\n      content = content.substring(firstBracket, lastBracket + 1);\n  }\n\n  const parsed = JSON.parse(content);\n  // Añadir Fecha_Reporte a cada objeto\n  return parsed.map(item => ({ json: { ...item, Fecha_Reporte: fechaReporte } }));\n} catch (e) {\n  // Si hay error, devolver un reporte con el mensaje de error\n  const raw = response.choices?.[0]?.message?.content || '';\n  const noHayPartidos = raw.includes('NO HAY PARTIDOS') || raw.includes('no hay partidos');\n  return [{ json: { \n    Evento: noHayPartidos ? '⚠️ NO HAY PARTIDOS PROGRAMADOS PARA HOY' : 'Error en el análisis',\n    Liga_Categoria: '-',\n    Analisis_Forma: '-',\n    Prediccion_Marcador: '-',\n    Mercado_Puntos: '-',\n    Probabilidad_Victoria: '-',\n    Riesgo: '-',\n    Justificacion_Clave: '-',\n    Fecha_Reporte: fechaReporte\n  }}];\n}"
+      },
+      "id": "8b27971c-b874-4e86-80de-69f46003022b",
+      "name": "Limpiador JSON Avanzado (Baloncesto)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        576,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.all()[0].json;\nconst fechaReporte = new Date().toISOString().slice(0,10);\n\ntry {\n  let content = response.choices[0].message.content;\n  // Limpieza agresiva de Markdown y texto basura\n  content = content.replace(/```json/g, '').replace(/```/g, '').trim();\n  \n  // Buscar el inicio y fin del array JSON por si la IA agregó texto extra\n  const firstBracket = content.indexOf('[');\n  const lastBracket = content.lastIndexOf(']');\n  \n  if (firstBracket !== -1 && lastBracket !== -1) {\n      content = content.substring(firstBracket, lastBracket + 1);\n  }\n\n  const parsed = JSON.parse(content);\n  // Añadir Fecha_Reporte a cada objeto\n  return parsed.map(item => ({ json: { ...item, Fecha_Reporte: fechaReporte } }));\n} catch (e) {\n  // Si hay error, devolver un reporte con el mensaje de error\n  const raw = response.choices?.[0]?.message?.content || '';\n  const noHayPartidos = raw.includes('NO HAY PARTIDOS') || raw.includes('no hay partidos');\n  return [{ json: { \n    Evento: noHayPartidos ? '⚠️ NO HAY PARTIDOS PROGRAMADOS PARA HOY' : 'Error en el análisis',\n    Liga_Categoria: '-',\n    Analisis_Forma: '-',\n    Prediccion_Marcador: '-',\n    Mercado_Carreras: '-',\n    Probabilidad_Victoria: '-',\n    Riesgo: '-',\n    Justificacion_Clave: '-',\n    Fecha_Reporte: fechaReporte\n  }}];\n}"
+      },
+      "id": "b0c942c8-aaae-456c-a8bc-fef56df8b27b",
+      "name": "Limpiador JSON Avanzado (MLB)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        576,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.all()[0].json;\nconst fechaReporte = new Date().toISOString().slice(0,10);\n\ntry {\n  let content = response.choices[0].message.content;\n  // Limpieza agresiva de Markdown y texto basura\n  content = content.replace(/```json/g, '').replace(/```/g, '').trim();\n  \n  // Buscar el inicio y fin del array JSON por si la IA agregó texto extra\n  const firstBracket = content.indexOf('[');\n  const lastBracket = content.lastIndexOf(']');\n  \n  if (firstBracket !== -1 && lastBracket !== -1) {\n      content = content.substring(firstBracket, lastBracket + 1);\n  }\n\n  const parsed = JSON.parse(content);\n  // Añadir Fecha_Reporte a cada objeto\n  return parsed.map(item => ({ json: { ...item, Fecha_Reporte: fechaReporte } }));\n} catch (e) {\n  // Si hay error, devolver un reporte con el mensaje de error\n  const raw = response.choices?.[0]?.message?.content || '';\n  const noHayPartidos = raw.includes('NO HAY PARTIDOS') || raw.includes('no hay partidos');\n  return [{ json: { \n    Evento: noHayPartidos ? '⚠️ NO HAY PARTIDOS PROGRAMADOS PARA HOY' : 'Error en el análisis',\n    Liga_Categoria: '-',\n    Analisis_Forma: '-',\n    Prediccion_Marcador: '-',\n    Mercado_Goles: '-',\n    Probabilidad_Victoria: '-',\n    Riesgo: '-',\n    Justificacion_Clave: '-',\n    Fecha_Reporte: fechaReporte\n  }}];\n}"
+      },
+      "id": "ba0131e7-8c7e-4b1a-a3af-edbfe3f4e727",
+      "name": "Limpiador JSON Avanzado (NHL)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        576,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.all()[0].json;\nconst fechaReporte = new Date().toISOString().slice(0,10);\n\ntry {\n  let content = response.choices[0].message.content;\n  // Limpieza agresiva de Markdown y texto basura\n  content = content.replace(/```json/g, '').replace(/```/g, '').trim();\n  \n  // Buscar el inicio y fin del array JSON por si la IA agregó texto extra\n  const firstBracket = content.indexOf('[');\n  const lastBracket = content.lastIndexOf(']');\n  \n  if (firstBracket !== -1 && lastBracket !== -1) {\n      content = content.substring(firstBracket, lastBracket + 1);\n  }\n\n  const parsed = JSON.parse(content);\n  // Añadir Fecha_Reporte a cada objeto\n  return parsed.map(item => ({ json: { ...item, Fecha_Reporte: fechaReporte } }));\n} catch (e) {\n  // Si hay error, devolver un reporte con el mensaje de error\n  const raw = response.choices?.[0]?.message?.content || '';\n  const noHayPartidos = raw.includes('NO HAY PARTIDOS') || raw.includes('no hay partidos');\n  return [{ json: { \n    Evento: noHayPartidos ? '⚠️ NO HAY PARTIDOS PROGRAMADOS PARA HOY' : 'Error en el análisis',\n    Liga_Categoria: '-',\n    Analisis_Forma: '-',\n    Prediccion_Marcador: '-',\n    Mercado_Puntos: '-',\n    Probabilidad_Victoria: '-',\n    Riesgo: '-',\n    Justificacion_Clave: '-',\n    Fecha_Reporte: fechaReporte\n  }}];\n}"
+      },
+      "id": "5688af23-41f3-4367-998e-f35354c97e63",
+      "name": "Limpiador JSON Avanzado (NFL)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        576,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "toFile",
+        "fileFormat": "xlsx",
+        "options": {
+          "sheetName": "Futbol"
+        }
+      },
+      "id": "8c828e13-9b81-4c9e-b09f-8667e9f215f3",
+      "name": "Convertir a Excel (Fútbol)",
+      "type": "n8n-nodes-base.spreadsheetFile",
+      "typeVersion": 2,
+      "position": [
+        800,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "toFile",
+        "fileFormat": "xlsx",
+        "options": {
+          "sheetName": "Baloncesto"
+        }
+      },
+      "id": "5d84b45d-f8bf-4cfa-b7e3-3885b04d7d27",
+      "name": "Convertir a Excel (Baloncesto)",
+      "type": "n8n-nodes-base.spreadsheetFile",
+      "typeVersion": 2,
+      "position": [
+        800,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "toFile",
+        "fileFormat": "xlsx",
+        "options": {
+          "sheetName": "MLB"
+        }
+      },
+      "id": "213422ef-bd31-4f09-aa7e-f5f4b4b83875",
+      "name": "Convertir a Excel (MLB)",
+      "type": "n8n-nodes-base.spreadsheetFile",
+      "typeVersion": 2,
+      "position": [
+        800,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "toFile",
+        "fileFormat": "xlsx",
+        "options": {
+          "sheetName": "NHL"
+        }
+      },
+      "id": "d9c6797a-1fc1-4628-a4fd-d0fcc2972489",
+      "name": "Convertir a Excel (NHL)",
+      "type": "n8n-nodes-base.spreadsheetFile",
+      "typeVersion": 2,
+      "position": [
+        800,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "toFile",
+        "fileFormat": "xlsx",
+        "options": {
+          "sheetName": "NFL"
+        }
+      },
+      "id": "ecf0735d-f608-4b7b-acd9-bc06b8b7f3b8",
+      "name": "Convertir a Excel (NFL)",
+      "type": "n8n-nodes-base.spreadsheetFile",
+      "typeVersion": 2,
+      "position": [
+        800,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Recolectar todas las predicciones de las 5 ramas\nconst items = $input.all();\nconst todasLasPredicciones = [];\n\n// Cada entrada del input es un array de items de una rama\n// Los inputs vienen en orden: Futbol, Baloncesto, MLB, NHL, NFL\nfor (const branchItems of items) {\n  // branchItems puede ser un array si la rama tiene múltiples items\n  if (Array.isArray(branchItems)) {\n    for (const item of branchItems) {\n      if (item && item.json) {\n        todasLasPredicciones.push(item.json);\n      }\n    }\n  } else if (branchItems && branchItems.json) {\n    todasLasPredicciones.push(branchItems.json);\n  }\n}\n\n// Devolver todas las predicciones como items separados\nreturn todasLasPredicciones.map(p => ({ json: p }));"
+      },
+      "id": "d7e874e7-ae8f-4479-834b-0186ab7de668",
+      "name": "Recolectar Predicciones (5 deportes)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1472,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-riesgo",
+              "leftValue": "={{ $json.Riesgo }}",
+              "rightValue": "Bajo",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "condition-probabilidad",
+              "leftValue": "={{ parseFloat($json.Probabilidad_Victoria) }}",
+              "rightValue": 70,
+              "operator": {
+                "type": "number",
+                "operation": "greater"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "6ecbea55-606c-49b6-b734-f416d18213ba",
+      "name": "¿Riesgo Bajo y Probabilidad > 70%?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1696,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Filtrar predicciones destacadas de todas las recolectadas\nconst items = $input.all();\nconst destacadas = [];\n\nfor (const item of items) {\n  const riesgo = item.json.Riesgo;\n  const prob = parseFloat(item.json.Probabilidad_Victoria);\n  if (riesgo === 'Bajo' && prob > 70) {\n    destacadas.push(item);\n  }\n}\n\nreturn destacadas;"
+      },
+      "id": "466568c7-d029-49ae-a217-a81e113702f2",
+      "name": "Filtrar Destacadas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1904,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const destacadas = $input.all();\n\nif (destacadas.length === 0) {\n  return [{ json: { message: '✅ No se encontraron apuestas destacadas hoy.' } }];\n}\n\nlet mensaje = '🔥 *APUESTAS DESTACADAS DEL DÍA* 🔥\\n\\n';\n\nfor (let i = 0; i < destacadas.length; i++) {\n  const d = destacadas[i].json;\n  mensaje += `*${i + 1}. ${d.Evento}*\\n`;\n  mensaje += `📊 Liga: ${d.Liga_Categoria}\\n`;\n  mensaje += `📈 Probabilidad: ${d.Probabilidad_Victoria}% | Riesgo: ${d.Riesgo}\\n`;\n  mensaje += `⚽ Predicción: ${d.Prediccion_Marcador}\\n`;\n  mensaje += `💡 ${d.Justificacion_Clave}\\n\\n`;\n}\n\nmensaje += '---\\n🤖 Reporte generado automáticamente por IA Deportiva';\n\nreturn [{ json: { message: mensaje } }];"
+      },
+      "id": "c3bfbce7-fd0b-4de5-a517-5cea195cae06",
+      "name": "Formatear Mensaje Telegram",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2128,
+        240
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Ejecutar Diariamente (2:00 AM UK)": {
+      "main": [
+        [
+          {
+            "node": "→ Futbol",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "→ Baloncesto",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "→ MLB",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "→ NHL",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "→ NFL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "→ Futbol": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request ESPN (Fútbol)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "→ Baloncesto": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request ESPN (NBA)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "→ MLB": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request ESPN (MLB)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "→ NHL": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request ESPN (NHL)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "→ NFL": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request ESPN (NFL)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request ESPN (Fútbol)": {
+      "main": [
+        [
+          {
+            "node": "Procesar JSON ESPN (Fútbol)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request ESPN (NBA)": {
+      "main": [
+        [
+          {
+            "node": "Procesar JSON ESPN (NBA)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request ESPN (MLB)": {
+      "main": [
+        [
+          {
+            "node": "Procesar JSON ESPN (MLB)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request ESPN (NHL)": {
+      "main": [
+        [
+          {
+            "node": "Procesar JSON ESPN (NHL)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request ESPN (NFL)": {
+      "main": [
+        [
+          {
+            "node": "Procesar JSON ESPN (NFL)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Procesar JSON ESPN (Fútbol)": {
+      "main": [
+        [
+          {
+            "node": "IA Analista Premium (Fútbol)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Procesar JSON ESPN (NBA)": {
+      "main": [
+        [
+          {
+            "node": "IA Analista Premium (NBA)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Procesar JSON ESPN (MLB)": {
+      "main": [
+        [
+          {
+            "node": "IA Analista Premium (MLB)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Procesar JSON ESPN (NHL)": {
+      "main": [
+        [
+          {
+            "node": "IA Analista Premium (NHL)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Procesar JSON ESPN (NFL)": {
+      "main": [
+        [
+          {
+            "node": "IA Analista Premium (NFL)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IA Analista Premium (Fútbol)": {
+      "main": [
+        [
+          {
+            "node": "Limpiador JSON Avanzado (Fútbol)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IA Analista Premium (NBA)": {
+      "main": [
+        [
+          {
+            "node": "Limpiador JSON Avanzado (Baloncesto)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IA Analista Premium (MLB)": {
+      "main": [
+        [
+          {
+            "node": "Limpiador JSON Avanzado (MLB)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IA Analista Premium (NHL)": {
+      "main": [
+        [
+          {
+            "node": "Limpiador JSON Avanzado (NHL)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IA Analista Premium (NFL)": {
+      "main": [
+        [
+          {
+            "node": "Limpiador JSON Avanzado (NFL)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limpiador JSON Avanzado (Fútbol)": {
+      "main": [
+        [
+          {
+            "node": "Convertir a Excel (Fútbol)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Recolectar Predicciones (5 deportes)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limpiador JSON Avanzado (Baloncesto)": {
+      "main": [
+        [
+          {
+            "node": "Convertir a Excel (Baloncesto)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Recolectar Predicciones (5 deportes)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limpiador JSON Avanzado (MLB)": {
+      "main": [
+        [
+          {
+            "node": "Convertir a Excel (MLB)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Recolectar Predicciones (5 deportes)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limpiador JSON Avanzado (NHL)": {
+      "main": [
+        [
+          {
+            "node": "Convertir a Excel (NHL)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Recolectar Predicciones (5 deportes)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limpiador JSON Avanzado (NFL)": {
+      "main": [
+        [
+          {
+            "node": "Convertir a Excel (NFL)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Recolectar Predicciones (5 deportes)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recolectar Predicciones (5 deportes)": {
+      "main": [
+        [
+          {
+            "node": "¿Riesgo Bajo y Probabilidad > 70%?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Riesgo Bajo y Probabilidad > 70%?": {
+      "main": [
+        [
+          {
+            "node": "Filtrar Destacadas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filtrar Destacadas": {
+      "main": [
+        [
+          {
+            "node": "Formatear Mensaje Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "3dab41fe-4961-4e1c-bd84-b2fe9a2674e5",
+  "meta": {
+    "instanceId": "e180e04a61a407882d76e04a34ffbc8f0fc813f28410ca46c9b75c9f841f8776"
+  },
+  "id": "7TFD5rv6e5-_3eXk-MGCC",
+  "tags": []
+}
