@@ -1,0 +1,314 @@
+{
+  "name": "Sports Dashboard API",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "const today = new Date().toISOString().slice(0,10).replace(/-/g,'');\nconst sd = $getWorkflowStaticData('global');\nsd.events = { futbol: [], nba: [], mlb: [], nhl: [], nfl: [] };\nsd.hipismoText = '';\nsd.date = new Date().toISOString().slice(0,10);\n\nconst sports = [\n  { sport: 'futbol', url: `https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=${today}`, isHtml: false },\n  { sport: 'futbol', url: `https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=${today}`, isHtml: false },\n  { sport: 'futbol', url: `https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/scoreboard?dates=${today}`, isHtml: false },\n  { sport: 'futbol', url: `https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/scoreboard?dates=${today}`, isHtml: false },\n  { sport: 'futbol', url: `https://site.api.espn.com/apis/site/v2/sports/soccer/fra.1/scoreboard?dates=${today}`, isHtml: false },\n  { sport: 'futbol', url: `https://site.api.espn.com/apis/site/v2/sports/soccer/bra.1/scoreboard?dates=${today}`, isHtml: false },\n  { sport: 'futbol', url: `https://site.api.espn.com/apis/site/v2/sports/soccer/arg.1/scoreboard?dates=${today}`, isHtml: false },\n  { sport: 'futbol', url: `https://site.api.espn.com/apis/site/v2/sports/soccer/mex.1/scoreboard?dates=${today}`, isHtml: false },\n  { sport: 'nba',    url: `https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=${today}`, isHtml: false },\n  { sport: 'mlb',    url: `https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=${today}`, isHtml: false },\n  { sport: 'nhl',    url: `https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/scoreboard?dates=${today}`, isHtml: false },\n  { sport: 'nfl',    url: `https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=${today}`, isHtml: false },\n  { sport: 'hipismo',url: 'https://www.macacohipico.com.ve', isHtml: true }\n];\nreturn sports.map(s => ({ json: s }));"
+      },
+      "id": "8a860421-cb30-42fb-b5fa-13bdd2b57f99",
+      "name": "Preparar Cola de Deportes",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        736,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "50a36ee4-a473-4cc3-9fa7-4b4fe1914186",
+      "name": "SplitInBatches",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        928,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "options": {
+          "response": {
+            "response": {}
+          },
+          "timeout": 15000
+        }
+      },
+      "id": "c2ef1b69-8d54-4b36-862e-e73a2a849e33",
+      "name": "HTTP Request Deporte",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1136,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const sd = $getWorkflowStaticData('global');\nconst orig = $('SplitInBatches').item.json;\nconst sport  = orig.sport;\nconst isHtml = orig.isHtml;\nconst resp   = $input.first().json;\n\nconst normalizeEvent = (e) => {\n  const comp = e.competitions?.[0];\n  if (!comp) return null;\n  const home = comp.competitors?.find(c => c.homeAway === 'home');\n  const away = comp.competitors?.find(c => c.homeAway === 'away');\n  return {\n    id: e.id || '',\n    evento: `${away?.team?.displayName || '?'} @ ${home?.team?.displayName || '?'}`,\n    local: home?.team?.displayName || '?',\n    visitante: away?.team?.displayName || '?',\n    localRecord: home?.records?.[0]?.summary || 'N/D',\n    visitanteRecord: away?.records?.[0]?.summary || 'N/D',\n    estado: comp.status?.type?.shortDetail || comp.status?.type?.name || 'Programado',\n    inProgress: comp.status?.type?.state === 'in',\n    marcadorLocal: home?.score || '-',\n    marcadorVisitante: away?.score || '-',\n    fecha: comp.startDate ? new Date(comp.startDate).toLocaleString('es-ES') : 'N/D',\n    liga: comp.league?.abbreviation || '',\n    venue: comp.venue?.fullName || ''\n  };\n};\n\nif (isHtml) {\n  let html = resp.data || JSON.stringify(resp);\n  let text = html\n    .replace(/<script\\b[^<]*(?:(?!<\\/script>)<[^<]*)*<\\/script>/gi,' ')\n    .replace(/<style\\b[^<]*(?:(?!<\\/style>)<[^<]*)*<\\/style>/gi,' ')\n    .replace(/<[^>]+>/g,' ').replace(/&nbsp;/g,' ').replace(/\\s+/g,' ').trim();\n  sd.hipismoText = (sd.hipismoText + ' ' + text).trim().substring(0, 5000);\n} else {\n  const events = (resp.events || []).map(normalizeEvent).filter(Boolean);\n  if (!sd.events[sport]) sd.events[sport] = [];\n  sd.events[sport].push(...events);\n}\n\nreturn [{ json: { sport, done: true } }];"
+      },
+      "id": "ab75a161-5843-4fac-8efe-221ca5fef140",
+      "name": "Acumular Resultado",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1328,
+        320
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "5771b42c-2dde-4b17-957a-1118ae6b9cc4",
+      "name": "Limit 1",
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        928,
+        544
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const sd = $getWorkflowStaticData('global');\nconst ev = sd.events || {};\n\nconst toText = (events) => (events || []).slice(0,20)\n  .map(e => `${e.evento} | ${e.visitanteRecord} vs ${e.localRecord} | ${e.estado}`)\n  .join('\\n') || 'Sin partidos hoy';\n\nconst sysPrompt = `Eres un analista deportivo experto. Analiza los partidos y genera predicciones.\nDevuelve SOLO un JSON con esta estructura exacta:\n{\n  \"futbol\":[{\"Evento\":\"A vs B\",\"Liga\":\"...\",\"Prediccion\":\"1-0\",\"Probabilidad\":70,\"Riesgo\":\"Bajo\",\"Justificacion\":\"...\"}],\n  \"nba\":[{\"Evento\":\"...\",\"Liga\":\"NBA\",\"Prediccion\":\"112-105\",\"Probabilidad\":65,\"Riesgo\":\"Medio\",\"Justificacion\":\"...\"}],\n  \"mlb\":[{\"Evento\":\"...\",\"Liga\":\"MLB\",\"Prediccion\":\"6-4\",\"Probabilidad\":60,\"Riesgo\":\"Medio\",\"Justificacion\":\"...\"}],\n  \"nhl\":[{\"Evento\":\"...\",\"Liga\":\"NHL\",\"Prediccion\":\"3-2\",\"Probabilidad\":58,\"Riesgo\":\"Medio\",\"Justificacion\":\"...\"}],\n  \"nfl\":[{\"Evento\":\"...\",\"Liga\":\"NFL\",\"Prediccion\":\"27-24\",\"Probabilidad\":62,\"Riesgo\":\"Bajo\",\"Justificacion\":\"...\"}],\n  \"hipismo\":[{\"Carrera\":\"1ra\",\"Caballo1\":\"...\",\"Prob1\":45,\"Caballo2\":\"...\",\"Prob2\":30,\"Justificacion\":\"...\"}]\n}\nPara cada deporte selecciona maximo 8 items. SOLO JSON valido, sin markdown.`;\n\nconst userContent = `FUTBOL:\\n${toText(ev.futbol)}\\n\\nNBA:\\n${toText(ev.nba)}\\n\\nMLB:\\n${toText(ev.mlb)}\\n\\nNHL:\\n${toText(ev.nhl)}\\n\\nNFL:\\n${toText(ev.nfl)}\\n\\nHIPISMO (texto web):\\n${(sd.hipismoText||'').substring(0,2000)}`;\n\nreturn [{ json: {\n  date: sd.date || new Date().toISOString().slice(0,10),\n  events: ev,\n  hipismoText: sd.hipismoText || '',\n  messages: [\n    { role: 'system', content: sysPrompt },\n    { role: 'user',   content: userContent }\n  ]\n}}];"
+      },
+      "id": "445a0be8-267a-4115-8f4f-adbe929b1166",
+      "name": "Construir Input para IA",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1136,
+        544
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer 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"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "llama-3.3-70b-versatile"
+            },
+            {
+              "name": "messages",
+              "value": "={{ $json.messages }}"
+            },
+            {
+              "name": "temperature",
+              "value": 0.3
+            },
+            {
+              "name": "max_tokens",
+              "value": 4096
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "d67a8c2e-b117-4186-a590-de588564c35c",
+      "name": "Groq IA Analysis",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1328,
+        544
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const aiResp = $input.first().json;\nconst prev   = $('Construir Input para IA').first().json;\nconst fechaReporte = prev.date || new Date().toISOString().slice(0,10);\n\nlet predictions = { futbol:[], nba:[], mlb:[], nhl:[], nfl:[], hipismo:[] };\ntry {\n  let content = aiResp.choices[0].message.content;\n  content = content.replace(/```json/g,'').replace(/```/g,'').trim();\n  const b1 = content.indexOf('{'), b2 = content.lastIndexOf('}');\n  if (b1 !== -1 && b2 !== -1) content = content.substring(b1, b2+1);\n  predictions = { ...predictions, ...JSON.parse(content) };\n} catch(e) {\n  predictions._parseError = e.message;\n}\n\nconst sports = ['futbol','nba','mlb','nhl','nfl'];\nfor (const s of sports) {\n  if (Array.isArray(predictions[s])) {\n    predictions[s] = predictions[s].map(p => ({ ...p, Fecha_Reporte: fechaReporte }));\n  }\n}\n\nconst allPreds = sports.flatMap(s => (predictions[s]||[]).map(p => ({...p, _deporte: s})));\nconst destacadas = allPreds.filter(p => Number(p.Probabilidad) > 55)\n  .sort((a,b) => Number(b.Probabilidad)-Number(a.Probabilidad));\nconst top3 = destacadas.slice(0,3);\n\nreturn [{ json: {\n  date: fechaReporte,\n  generatedAt: new Date().toISOString(),\n  events: prev.events,\n  predictions,\n  destacadas,\n  top3\n}}];"
+      },
+      "id": "41f3cc68-25d1-4b88-99f6-067e5d77dd53",
+      "name": "Parsear y Construir Respuesta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1536,
+        544
+      ]
+    },
+    {
+      "parameters": {
+        "path": "sports-dashboard",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "06609afc-c9e6-44c8-8168-d8f8a664861f",
+      "name": "Webhook1",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        528,
+        320
+      ],
+      "webhookId": "sports-dashboard-api-v2"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "b95239ce-5edf-49e1-a849-9436dd70f5bc",
+      "name": "Respond to Webhook1",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1728,
+        544
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Preparar Cola de Deportes": {
+      "main": [
+        [
+          {
+            "node": "SplitInBatches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SplitInBatches": {
+      "main": [
+        [
+          {
+            "node": "Limit 1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request Deporte",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request Deporte": {
+      "main": [
+        [
+          {
+            "node": "Acumular Resultado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Acumular Resultado": {
+      "main": [
+        [
+          {
+            "node": "SplitInBatches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit 1": {
+      "main": [
+        [
+          {
+            "node": "Construir Input para IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Construir Input para IA": {
+      "main": [
+        [
+          {
+            "node": "Groq IA Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq IA Analysis": {
+      "main": [
+        [
+          {
+            "node": "Parsear y Construir Respuesta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parsear y Construir Respuesta": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "Preparar Cola de Deportes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "3584b4f5-bb92-4777-8509-9b023af3b3a2",
+  "meta": {
+    "instanceId": "e366323411bda4f32530120fab2e43e036e37df7a26c80ee0f9228d3d349f329"
+  },
+  "id": "x64laR2n5NiIJQ5x",
+  "tags": []
+}
